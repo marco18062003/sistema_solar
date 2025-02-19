@@ -1,0 +1,53 @@
+using UnityEngine;
+
+public class OrbitaMercur : MonoBehaviour
+{
+    public Transform sol; // Referencia al Sol
+    public float velocidadOrbitalPromedio = 10f; // Velocidad promedio orbital
+    public float distanciaMaxima = 6f; // Distancia máxima (perihelio)
+    public float distanciaMinima = 4f; // Distancia mínima (afelio)
+    public float inclinacionOrbital = 7f; // Inclinación en grados
+
+    private float distanciaActual; // Distancia actual desde el Sol
+    private float velocidadOrbital; // Velocidad orbital variable
+    private float anguloOrbital = 0f; // Ángulo de la órbita
+    private float angularVelocidad; // Velocidad angular basada en Kepler
+
+    void Start()
+    {
+        // Establece la distancia inicial en el perihelio
+        distanciaActual = distanciaMinima;
+    }
+
+    void Update()
+    {
+        // Calcular la velocidad angular (puedes ajustarla para simular la ley de Kepler)
+        angularVelocidad = velocidadOrbitalPromedio / Mathf.Sqrt(distanciaActual);
+
+        // Incrementar el ángulo orbital
+        anguloOrbital += angularVelocidad * Time.deltaTime;
+
+        // Asegúrate de que el ángulo no se desborde
+        if (anguloOrbital >= 360f)
+        {
+            anguloOrbital -= 360f;
+        }
+
+        // Ajusta la distancia en función de la órbita elíptica
+        distanciaActual = Mathf.Lerp(distanciaMinima, distanciaMaxima, Mathf.Abs(Mathf.Cos(anguloOrbital)));
+
+        // Calcula la posición orbital usando coordenadas polares
+        float x = Mathf.Cos(anguloOrbital) * distanciaActual;
+        float z = Mathf.Sin(anguloOrbital) * distanciaActual;
+
+        // Aplica la inclinación a la órbita
+        float y = Mathf.Sin(inclinacionOrbital * Mathf.Deg2Rad) * distanciaActual;
+
+        // Calcula la nueva posición de Mercurio alrededor del Sol
+        transform.position = sol.position + new Vector3(x, y, z);
+
+        // Asegura que Mercurio mire hacia el Sol (si es necesario)
+        Vector3 direccionHaciaElSol = sol.position - transform.position;
+        transform.rotation = Quaternion.LookRotation(direccionHaciaElSol);
+    }
+}
